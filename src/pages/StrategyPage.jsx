@@ -199,7 +199,7 @@ export default function StrategyPage() {
             {[
               { label: '사업기간', value: '2026.06 ~ 2029.03 (33개월)' },
               { label: '월 목표수익률', value: '15%/월' },
-              { label: '총 투자원금', value: '790,000,000원 (파트너 4인)' },
+              { label: '총 투자원금', value: '730,000,000원 (파트너 4인)' },
               { label: '결산 시점', value: '1·2·3차년 3월 (연 1회)' },
             ].map((item, i) => (
               <div key={i} style={{
@@ -283,18 +283,18 @@ export default function StrategyPage() {
       {/* ══ 3. 투자 파트너 구성 ══════════════════════════════ */}
       <Section title="투자 파트너 구성" icon={Users} color="#60a5fa" badge="Partners">
         <HighlightBlock color="#60a5fa">
-          총 4인의 투자 파트너가 <strong style={{ color: '#60a5fa' }}>790,000,000원</strong>을 순차적으로 투입합니다.
-          김현수(350M) · 나성수(140M) · 임현(280M) · 김한님(280M)이
+          총 4인의 투자 파트너가 <strong style={{ color: '#60a5fa' }}>730,000,000원</strong>을 순차적으로 투입합니다.
+          김현수(290M) · 나성수(140M) · 임현(280M) · 김한님(280M)이
           1~2차년에 걸쳐 단계적으로 참여하는 복리 극대화 구조입니다.
         </HighlightBlock>
 
         <div style={{ marginTop: '0.75rem' }}>
           {[
             {
-              name: '김현수', amount: '350,000,000원', timing: '2026-07 / 2027-04 / 2027-06',
+              name: '김현수', amount: '290,000,000원', timing: '2026-07 / 2027-04 / 2027-06',
               color: '#c9a84c', ratio: '20%', type: '개인',
               desc: '1차년 초기 최대 선발 투자자. 가장 긴 복리 누적 기간을 보유하여 최대 수익 효과.',
-              detail: '1차년: 150M(2026-07) · 2차년: 100M(2027-04) + 100M(2027-06)',
+              detail: '1차년: 90M(2026-07) · 2차년: 100M(2027-04) + 100M(2027-06)',
             },
             {
               name: '나성수', amount: '140,000,000원', timing: '2026-06 / 2026-11',
@@ -355,8 +355,8 @@ export default function StrategyPage() {
           marginTop: '0.75rem',
         }}>
           <span style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 600 }}>총 투자원금 합계</span>
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#c9a84c', fontVariantNumeric: 'tabular-nums' }}>790,000,000원</span>
-          <span style={{ fontSize: '0.75rem', color: '#475569', marginLeft: '0.625rem' }}>김현수 350M · 나성수 140M · 임현 280M · 김한님 280M</span>
+          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#c9a84c', fontVariantNumeric: 'tabular-nums' }}>730,000,000원</span>
+          <span style={{ fontSize: '0.75rem', color: '#475569', marginLeft: '0.625rem' }}>김현수 290M · 나성수 140M · 임현 280M · 김한님 280M</span>
         </div>
       </Section>
 
@@ -448,7 +448,7 @@ export default function StrategyPage() {
             color="#c9a84c"
             items={[
               '2026-06: 사업 개시 — 나성수 4,000만원 초기 투입, 보험 슬롯 판매 활동 시작',
-              '2026-07: 김현수 1억5천만 투입 + 보험 수당 수익 발생 시작 (월 135,000,000원 수당)',
+              '2026-07: 김현수 9천만 투입 + 보험 수당 수익 발생 시작 (월 135,000,000원 수당)',
               '2026-07: 설계사정착수당 수령 — 나상수·임현·박승훈·나성수 각 1천만 = 총 4,000만원',
               '2026-09~11: 김한님 분할 투입 8천만 (30M+30M+20M) / 2026-11: 나성수 1억 추가',
               '2027-06~07: 김현수 2차년 추가 투입 (100M+100M)',

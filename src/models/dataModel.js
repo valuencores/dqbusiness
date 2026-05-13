@@ -31,7 +31,7 @@ export const DEFAULT_CONFIG = {
   // ── 투자파트너 자금 (전면 수정) ──────────────────────────────
   //
   // [1차년 2026-06~2027-03]
-  //   김현수: 2026-07 150,000,000 / 2027-06 100,000,000
+  //   김현수: 2026-07  90,000,000 / 2027-06 100,000,000
   //   나성수: 2026-06  40,000,000 / 2026-11 100,000,000
   //   김한님: 2026-09  30,000,000 / 2026-10 30,000,000 / 2026-11 20,000,000
   //
@@ -42,7 +42,7 @@ export const DEFAULT_CONFIG = {
   // ─────────────────────────────────────────────────────────
   partnerInflows: [
     // ── 1차년 파트너 ──
-    { id: 'p_kh1', participantId: 'kimhyunsu', name: '김현수', month: '2026-07', amount: 150000000 },
+    { id: 'p_kh1', participantId: 'kimhyunsu', name: '김현수', month: '2026-07', amount: 90000000 },
     { id: 'p_kh2', participantId: 'kimhyunsu', name: '김현수', month: '2027-06', amount: 100000000 },
 
     { id: 'p_ns1', participantId: 'nasungsu',  name: '나성수', month: '2026-06', amount: 40000000 },
@@ -172,12 +172,12 @@ export const DEFAULT_CONFIG = {
   },
 
   // 참여자 과세 프로파일 (총 투입 원금 업데이트)
-  // 김현수: 150M+100M+100M = 350M
+  // 김현수:  90M+100M+100M = 290M
   // 나성수:  40M+100M      = 140M
   // 임현:   100M+180M      = 280M
   // 김한님:  30M+30M+20M+100M+100M = 280M
   participantProfiles: [
-    { id: 'kimhyunsu', name: '김현수', entityType: 'individual', principal: 350000000, distributionRatio: 0.20, taxProfile: 'individual', incomeType: 'investment', priorityReturn: true },
+    { id: 'kimhyunsu', name: '김현수', entityType: 'individual', principal: 290000000, distributionRatio: 0.20, taxProfile: 'individual', incomeType: 'investment', priorityReturn: true },
     { id: 'nasungsu',  name: '나성수', entityType: 'individual', principal: 140000000, distributionRatio: 0.12, taxProfile: 'individual', incomeType: 'investment', priorityReturn: true },
     { id: 'imhyun',    name: '임현',   entityType: 'individual', principal: 280000000, distributionRatio: 0.28, taxProfile: 'individual', incomeType: 'investment', priorityReturn: true },
     { id: 'kimhannim', name: '김한님', entityType: 'individual', principal: 280000000, distributionRatio: 0.22, taxProfile: 'individual', incomeType: 'investment', priorityReturn: false },
