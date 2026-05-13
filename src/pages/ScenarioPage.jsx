@@ -1,4 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return width;
+}
 import {
   BarChart, Bar, LineChart, Line, RadarChart, Radar,
   PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -293,8 +303,12 @@ export default function ScenarioPage() {
     });
   }, [comparisonTable, activeScenarios, baseKpis]);
 
+  const windowWidth = useWindowWidth();
+  const isMobile    = windowWidth <= 768;
+  const cols2       = isMobile ? '1fr' : '1fr 1fr';
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem' }}>
 
       {/* ── 헤더 ── */}
       <div>
@@ -307,7 +321,7 @@ export default function ScenarioPage() {
       </div>
 
       {/* ── 시나리오 카드 그리드 ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.875rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: isMobile ? '0.625rem' : '0.875rem' }}>
         {Object.entries(SCENARIOS).map(([key, scenario]) => (
           <ScenarioCard
             key={key}
@@ -374,7 +388,7 @@ export default function ScenarioPage() {
       </div>
 
       {/* ── 차트 1: 월별 잔액 비교 ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '1.25rem' }}>
         <div className="card">
           <div className="section-header"><TrendingUp size={14} /> 월별 잔액 비교</div>
           <ResponsiveContainer width="100%" height={260}>
@@ -420,7 +434,7 @@ export default function ScenarioPage() {
       </div>
 
       {/* ── 차트 2: 결산 시점 비교 + 참여자별 ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '1.25rem' }}>
         {settlementCompare.length > 0 && (
           <div className="card">
             <div className="section-header"><DollarSign size={14} /> 결산 시점별 잔액 비교</div>

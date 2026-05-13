@@ -1,4 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return width;
+}
 import {
   Target, TrendingUp, Shield, Users, DollarSign, Calendar,
   ChevronDown, ChevronUp, CheckCircle, AlertCircle, Zap,
@@ -61,7 +71,7 @@ function InfoBox({ label, value, sub, color = '#c9a84c', wide = false }) {
       background: '#040d21',
       borderRadius: 8,
       border: `1px solid ${color}22`,
-      gridColumn: wide ? 'span 2' : undefined,
+      gridColumn: wide ? 'span 2' : undefined, // handled via CSS on mobile
     }}>
       <div style={{ fontSize: '0.625rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.375rem' }}>{label}</div>
       <div style={{ fontSize: '1rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
@@ -141,6 +151,12 @@ function HighlightBlock({ children, color = '#c9a84c' }) {
 // MAIN PAGE
 // ════════════════════════════════════════════════════════════
 export default function StrategyPage() {
+  const windowWidth = useWindowWidth();
+  const isMobile    = windowWidth <= 768;
+  const isTablet    = windowWidth <= 1024;
+  const cols3 = isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
+  const cols2 = isMobile ? '1fr' : '1fr 1fr';
+
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', paddingBottom: '3rem' }}>
 
@@ -155,7 +171,7 @@ export default function StrategyPage() {
             <BookOpen size={20} color="#c9a84c" />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#e2e8f0', margin: 0 }}>
+            <h1 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 800, color: '#e2e8f0', margin: 0 }}>
               사업 추진 전략
             </h1>
             <p style={{ fontSize: '0.8125rem', color: '#475569', margin: '0.2rem 0 0' }}>
@@ -208,7 +224,7 @@ export default function StrategyPage() {
           투자 파트너들의 자금이 순차 유입되면서 복리 자산이 기하급수적으로 성장하는 구조를 설계합니다.
         </HighlightBlock>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: '0.75rem', marginTop: '1rem' }}>
           <div style={{ padding: '1rem', background: '#040d21', borderRadius: 10, border: '1px solid rgba(96,165,250,0.25)', textAlign: 'center' }}>
             <div style={{ fontSize: '0.6875rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>수익원 ①</div>
             <Shield size={22} color="#60a5fa" style={{ margin: '0 auto 0.5rem' }} />
@@ -243,7 +259,7 @@ export default function StrategyPage() {
         </div>
 
         <Divider label="보험 활동 기간 (수당 수익 발생 구간)" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '0.75rem' }}>
           <InfoBox label="보험 판매 활동 기간" value="2026-06 ~ 2027-02" sub="9개월간 슬롯 판매/계약" color="#60a5fa" />
           <InfoBox label="수당 수익 발생 기간" value="2026-07 ~ 2027-03" sub="9개월간 수당 수령" color="#34d399" />
         </div>
@@ -477,14 +493,14 @@ export default function StrategyPage() {
 
       {/* ══ 6. 결산 구조 & 과세 전략 ══════════════════════════ */}
       <Section title="결산 구조 및 과세 전략" icon={Target} color="#34d399" badge="Settlement & Tax">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: '0.75rem', marginBottom: '1rem' }}>
           <InfoBox label="1차 결산" value="2027-03" sub="비과세 · 1차년 성과 확인 / 파트너 추가 투입 결정" color="#c9a84c" />
           <InfoBox label="2차 결산" value="2028-03" sub="33.2% 세율 적용 · 2차년 누적 성과 분배" color="#60a5fa" />
           <InfoBox label="3차 결산 (최종)" value="2029-03" sub="33.2% 세율 적용 · 최종 수익 완전 분배" color="#34d399" />
         </div>
 
         <Divider label="과세 구조 선택" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '0.75rem' }}>
           <div style={{ padding: '1rem', background: '#040d21', borderRadius: 10, border: '1px solid rgba(201,168,76,0.2)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#c9a84c', marginBottom: '0.625rem' }}>📋 개인 과세 (배당소득세)</div>
             <CheckItem text="배당소득세 15.4% (지방세 포함)" />
@@ -509,7 +525,7 @@ export default function StrategyPage() {
 
       {/* ══ 7. 리스크 관리 & 핵심 전제 ════════════════════════ */}
       <Section title="리스크 관리 및 핵심 전제" icon={Shield} color="#f87171" badge="Risk" defaultOpen={false}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '1rem' }}>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f87171', marginBottom: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               ⚠️ 주요 리스크 요인

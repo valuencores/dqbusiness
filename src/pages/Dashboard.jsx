@@ -15,6 +15,17 @@ import { useStore } from '../store/useStore';
 import { fmt, fmtB, fmtPct } from '../engine/calculator';
 import { SCENARIOS } from '../models/dataModel';
 
+// ── 반응형 뷰포트 훅 ──────────────────────────────────────────
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return width;
+}
+
 // ── Custom Tooltip ──────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -636,10 +647,18 @@ export default function Dashboard() {
     }));
   }, [participants]);
 
+  const windowWidth   = useWindowWidth();
+  const isMobile       = windowWidth <= 768;
+  const isTablet       = windowWidth <= 1024;
+  // 컬럼 수 헬퍼
+  const cols3          = isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
+  const cols2          = isMobile ? '1fr' : '1fr 1fr';
+  const colsChart21    = isMobile ? '1fr' : '2fr 1fr';
+
   if (!kpis) return <div style={{ color: '#64748b', padding: '2rem' }}>계산 중...</div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem' }}>
 
       {/* ── 운영비용 모달 (포탈) ── */}
       {costModal.open && (
@@ -708,7 +727,7 @@ export default function Dashboard() {
       {/* ── 헤더 + 시나리오 토글 ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#e2e8f0', margin: 0 }}>
+          <h1 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 800, color: '#e2e8f0', margin: 0 }}>
             재무전략 대시보드
           </h1>
           <p style={{ fontSize: '0.8125rem', color: '#475569', margin: '0.25rem 0 0' }}>
@@ -733,11 +752,12 @@ export default function Dashboard() {
           ② 사업 개요 메시지 배너
       ══════════════════════════════════════════════════════ */}
       <div style={{
-        padding: '1.25rem 1.5rem',
+        padding: isMobile ? '0.875rem' : '1.25rem 1.5rem',
         background: 'linear-gradient(135deg, #0a1628 0%, #091424 50%, #0a1628 100%)',
         borderRadius: 12,
         border: '1px solid rgba(201,168,76,0.25)',
         boxShadow: '0 0 30px rgba(201,168,76,0.04)',
+        overflowX: 'hidden',
       }}>
         {/* 슬로건 */}
         <div style={{ marginBottom: '1rem' }}>
@@ -753,7 +773,7 @@ export default function Dashboard() {
         </div>
 
         {/* 3대 수익 축 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: '0.75rem', marginBottom: '1rem' }}>
           {[
             { icon: Shield, color: '#60a5fa', title: '① 보험 연계 수당', lines: ['5슬롯 × 27,000,000원/월', '월 135,000,000원 수당 수익', '2026-07 ~ 2027-03 발생'] },
             { icon: TrendingUp, color: '#c9a84c', title: '② 투자 복리 운용', lines: ['월 15% 복리 수익률', '총 790,000,000원 원금', '33개월 복리 성장'] },
@@ -829,7 +849,7 @@ export default function Dashboard() {
           <span style={{ fontSize: '0.6875rem', color: '#475569' }}>투입원금 · 보험수당 · 비용 구분</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: isMobile ? '0.75rem' : '1rem' }}>
           {yearlyFundData.map((yr, yi) => (
             <div key={yi} style={{
               background: '#0a1628', borderRadius: 12,
@@ -1025,7 +1045,7 @@ export default function Dashboard() {
           <span style={{ fontSize: '0.6875rem', color: '#475569' }}>투자파트너 · 보험연계 · 일반시드 기여도</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: isMobile ? '0.75rem' : '1rem' }}>
           {yearlyImpactData.map((yr, yi) => {
             // 각 요소의 기여 비율 (투입금액 기준 간이 계산)
             const totalInputFunds = yr.partnerCumulative + yr.seedAmount;
@@ -1201,7 +1221,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: isMobile ? '0.625rem' : '1rem' }}>
         <KpiCard
           title="누적 투자원금"
           value={`${fmtB(kpis.totalPrincipal)}원`}
@@ -1265,7 +1285,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── 차트 1: 월별 잔액 성장 ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: colsChart21, gap: '1.25rem' }}>
         <div className="card">
           <div className="section-header">
             <TrendingUp size={14} /> 월별 자산 성장 추이
@@ -1348,7 +1368,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── 차트 2: 월별 유입/유출 + ROI ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '1.25rem' }}>
         <div className="card">
           <div className="section-header">
             <BarChart2 size={14} /> 월별 유입 / 유출
@@ -1388,7 +1408,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── 차트 3: 결산 시점별 + 참여자 분배 ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: '1.25rem' }}>
         <div className="card">
           <div className="section-header">
             <Calendar size={14} /> 결산 시점별 성과
