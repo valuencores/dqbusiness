@@ -200,6 +200,12 @@ export const useStore = create(
     }),
     {
       name: 'dquant-storage',
+      version: 2, // bump → localStorage 캐시 무효화 (김현수 90M 반영)
+      migrate: (_state, _version) => {
+        // 버전 불일치 시 DEFAULT_CONFIG 로 완전 초기화
+        const config = deepClone(DEFAULT_CONFIG);
+        return { config, activeScenario: 'base' };
+      },
       partialize: (state) => ({ config: state.config, activeScenario: state.activeScenario }),
       onRehydrateStorage: () => (state) => {
         if (state) {
