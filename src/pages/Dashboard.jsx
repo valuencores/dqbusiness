@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ReferenceLine, PieChart, Pie, Cell
 } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Target, BarChart2, ArrowUpRight, ArrowDownRight, Calendar, Layers } from 'lucide-react';
+import { TrendingUp, DollarSign, Target, BarChart2, ArrowUpRight, ArrowDownRight, Calendar, Layers } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { fmt, fmtB, fmtPct } from '../engine/calculator';
 import { SCENARIOS } from '../models/dataModel';
@@ -15,14 +15,14 @@ const CustomTooltip = ({ active, payload, label }) => {
   return (
     <div style={{
       background: '#0f2040', border: '1px solid #2a4f8a', borderRadius: 8,
-      padding: '0.75rem 1rem', fontSize: '0.75rem', minWidth: 180,
+      padding: '0.75rem 1rem', fontSize: '0.75rem', minWidth: 200,
     }}>
       <div style={{ color: '#c9a84c', fontWeight: 700, marginBottom: '0.5rem' }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', color: '#cbd5e1', marginBottom: '0.2rem' }}>
           <span style={{ color: p.color }}>{p.name}</span>
           <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-            {typeof p.value === 'number' ? fmtB(p.value) : p.value}
+            {typeof p.value === 'number' ? `${fmtB(p.value)}원` : p.value}
           </span>
         </div>
       ))}
@@ -57,10 +57,10 @@ function KpiCard({ title, value, sub, icon: Icon, color = '#c9a84c', trend, tren
         </span>
         {Icon && <Icon size={14} color={color} />}
       </div>
-      <div style={{ fontSize: '1.375rem', fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2, marginBottom: '0.375rem' }}>
+      <div style={{ fontSize: '1.125rem', fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2, marginBottom: '0.375rem', wordBreak: 'break-all' }}>
         {value}
       </div>
-      {sub && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{sub}</div>}
+      {sub && <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>{sub}</div>}
       {trend !== undefined && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.25rem',
@@ -79,21 +79,30 @@ function KpiCard({ title, value, sub, icon: Icon, color = '#c9a84c', trend, tren
 function buildInflowPieData(rows) {
   let general = 0, partner = 0, insurance = 0, settle = 0, refund = 0, other = 0;
   rows.forEach(r => {
-    general += r.inflow.general || 0;
-    partner += r.inflow.partner || 0;
+    general   += r.inflow.general            || 0;
+    partner   += r.inflow.partner            || 0;
     insurance += r.inflow.insuranceAllowance || 0;
-    settle += r.inflow.settlementAllowance || 0;
-    refund += r.inflow.insuranceRefund || 0;
-    other += r.inflow.other || 0;
+    settle    += r.inflow.settlementAllowance|| 0;
+    refund    += r.inflow.insuranceRefund    || 0;
+    other     += r.inflow.other              || 0;
   });
   return [
-    { name: '파트너 자금', value: partner, color: '#c9a84c' },
-    { name: '보험 수당', value: insurance, color: '#60a5fa' },
-    { name: '일반 시드', value: general, color: '#34d399' },
-    { name: '정착수당', value: settle, color: '#a78bfa' },
-    { name: '해약환급', value: refund, color: '#f472b6' },
-    { name: '기타', value: other, color: '#64748b' },
+    { name: '파트너 자금', value: partner,   color: '#c9a84c' },
+    { name: '보험 수당',   value: insurance, color: '#60a5fa' },
+    { name: '일반 시드',   value: general,   color: '#34d399' },
+    { name: '정착수당',    value: settle,    color: '#a78bfa' },
+    { name: '해약환급',    value: refund,    color: '#f472b6' },
+    { name: '기타',        value: other,     color: '#64748b' },
   ].filter(d => d.value > 0);
+}
+
+// 축 숫자 단위 축약 (억/만) — 축 레이블만 사용, 툴팁/테이블은 전체 천단위
+function axisTickFmt(v) {
+  const abs = Math.abs(v);
+  if (abs >= 100000000) return `${(v / 100000000).toFixed(0)}억`;
+  if (abs >= 10000000)  return `${(v / 10000000).toFixed(0)}천만`;
+  if (abs >= 10000)     return `${(v / 10000).toFixed(0)}만`;
+  return fmtB(v);
 }
 
 // ── Main Dashboard ──────────────────────────────────────────
@@ -103,38 +112,37 @@ export default function Dashboard() {
   const chartData = useMemo(() => {
     if (!rows) return [];
     return rows.map(r => ({
-      month: r.month.slice(2), // YY-MM
-      fullMonth: r.month,
-      balance: r.closingBalance,
-      afterTax: r.afterTaxBalance,
-      inflow: r.totalInflow,
-      outflow: r.totalOutflow,
-      returnAmt: r.investmentReturn,
-      roi: r.roi,
+      month:        r.month.slice(2),
+      fullMonth:    r.month,
+      balance:      r.closingBalance,
+      afterTax:     r.afterTaxBalance,
+      inflow:       r.totalInflow,
+      outflow:      r.totalOutflow,
+      returnAmt:    r.investmentReturn,
+      roi:          r.roi,
       isSettlement: r.isSettlement,
-      principal: r.cumulativePrincipal,
+      principal:    r.cumulativePrincipal,
     }));
   }, [rows]);
 
   const settlementChartData = useMemo(() => {
     if (!settlements) return [];
     return settlements.map(s => ({
-      month: s.month,
+      month:   s.month,
       balance: s.closingBalance,
-      preTax: s.preTaxProfit,
-      afterTax: s.afterTaxProfit,
-      roi: s.roi * 100,
+      preTax:  s.preTaxProfit,
+      afterTax:s.afterTaxProfit,
+      roi:     s.roi * 100,
     }));
   }, [settlements]);
 
-  const inflowPieData = useMemo(() => buildInflowPieData(rows || []), [rows]);
-
+  const inflowPieData      = useMemo(() => buildInflowPieData(rows || []), [rows]);
   const participantChartData = useMemo(() => {
     if (!participants) return [];
     return participants.map(p => ({
-      name: p.name,
-      preTax: p.preTaxShare,
-      afterTax: p.afterTaxShare,
+      name:      p.name,
+      preTax:    p.preTaxShare,
+      afterTax:  p.afterTaxShare,
       principal: p.totalPrincipal,
     }));
   }, [participants]);
@@ -172,15 +180,15 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
         <KpiCard
           title="누적 투자원금"
-          value={fmtB(kpis.totalPrincipal)}
-          sub={`${fmt(kpis.totalPrincipal)}원`}
+          value={`${fmtB(kpis.totalPrincipal)}원`}
+          sub="총 투자 원금 합계"
           icon={DollarSign}
           color="#60a5fa"
         />
         <KpiCard
           title="현재 세전 잔액"
-          value={fmtB(kpis.currentBalance)}
-          sub={`${fmt(kpis.currentBalance)}원`}
+          value={`${fmtB(kpis.currentBalance)}원`}
+          sub={`원금 대비 +${fmtB(kpis.preTaxProfit)}원`}
           icon={TrendingUp}
           color="#c9a84c"
           trend={kpis.totalROI}
@@ -188,8 +196,8 @@ export default function Dashboard() {
         />
         <KpiCard
           title="세후 잔액"
-          value={fmtB(kpis.afterTaxBalance)}
-          sub={config.taxConfig.mode === 'none' ? '과세 미반영' : `세금 ${fmtB(kpis.cumulativeTax)}`}
+          value={`${fmtB(kpis.afterTaxBalance)}원`}
+          sub={config.taxConfig.mode === 'none' ? '과세 미반영' : `세금 -${fmtB(kpis.cumulativeTax)}원`}
           icon={Target}
           color="#34d399"
         />
@@ -202,28 +210,28 @@ export default function Dashboard() {
         />
         <KpiCard
           title="세전 사업이익"
-          value={fmtB(kpis.preTaxProfit)}
-          sub={`누적수익 ${fmtB(kpis.cumulativeReturn)}`}
+          value={`${fmtB(kpis.preTaxProfit)}원`}
+          sub={`누적수익 ${fmtB(kpis.cumulativeReturn)}원`}
           icon={ArrowUpRight}
           color="#34d399"
         />
         <KpiCard
           title="누적 유입금"
-          value={fmtB(kpis.cumulativeInflow)}
-          sub={`유출 ${fmtB(kpis.cumulativeOutflow)}`}
+          value={`${fmtB(kpis.cumulativeInflow)}원`}
+          sub={`유출 ${fmtB(kpis.cumulativeOutflow)}원`}
           icon={Layers}
           color="#60a5fa"
         />
         <KpiCard
           title="다음 결산 예상잔액"
-          value={fmtB(kpis.nextSettlementBalance)}
+          value={`${fmtB(kpis.nextSettlementBalance)}원`}
           sub={`결산 ${kpis.nextSettlementMonth}`}
           icon={Calendar}
           color="#f472b6"
         />
         <KpiCard
           title="최종 사업이익"
-          value={fmtB(kpis.afterTaxProfit)}
+          value={`${fmtB(kpis.afterTaxProfit)}원`}
           sub={config.taxConfig.mode === 'none' ? '세전 기준' : '세후 기준'}
           icon={TrendingUp}
           color="#c9a84c"
@@ -239,31 +247,33 @@ export default function Dashboard() {
             <TrendingUp size={14} /> 월별 자산 성장 추이
           </div>
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 15 }}>
               <defs>
                 <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#c9a84c" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#c9a84c" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#c9a84c" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#c9a84c" stopOpacity={0}   />
                 </linearGradient>
-                <linearGradient id="afGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
+                <linearGradient id="afGrad"  x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#34d399" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#34d399" stopOpacity={0}   />
                 </linearGradient>
-                <linearGradient id="prGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                <linearGradient id="prGrad"  x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#60a5fa" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}    />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#162a52" />
               <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 10 }} interval={2} />
-              <YAxis tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} width={60} />
+              <YAxis tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} width={62} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
               {settlements?.map(s => (
-                <ReferenceLine key={s.month} x={s.month.slice(2)} stroke="#c9a84c" strokeDasharray="4 4" strokeWidth={1.5} label={{ value: '결산', fill: '#c9a84c', fontSize: 9 }} />
+                <ReferenceLine key={s.month} x={s.month.slice(2)} stroke="#c9a84c"
+                  strokeDasharray="4 4" strokeWidth={1.5}
+                  label={{ value: '결산', fill: '#c9a84c', fontSize: 9 }} />
               ))}
-              <Area type="monotone" dataKey="principal" name="누적원금" stroke="#60a5fa" fill="url(#prGrad)" strokeWidth={1.5} dot={false} />
-              <Area type="monotone" dataKey="balance" name="세전잔액" stroke="#c9a84c" fill="url(#balGrad)" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="principal" name="누적원금"  stroke="#60a5fa" fill="url(#prGrad)" strokeWidth={1.5} dot={false} />
+              <Area type="monotone" dataKey="balance"   name="세전잔액"  stroke="#c9a84c" fill="url(#balGrad)" strokeWidth={2} dot={false} />
               {config.taxConfig.mode !== 'none' && (
                 <Area type="monotone" dataKey="afterTax" name="세후잔액" stroke="#34d399" fill="url(#afGrad)" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
               )}
@@ -285,11 +295,12 @@ export default function Dashboard() {
                 paddingAngle={3}
                 dataKey="value"
               >
-                {inflowPieData.map((d, i) => (
-                  <Cell key={i} fill={d.color} />
-                ))}
+                {inflowPieData.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Pie>
-              <Tooltip formatter={(v) => fmtB(v)} contentStyle={{ background: '#0f2040', border: '1px solid #2a4f8a', borderRadius: 8, fontSize: 11 }} />
+              <Tooltip
+                formatter={(v) => [`${fmtB(v)}원`, '']}
+                contentStyle={{ background: '#0f2040', border: '1px solid #2a4f8a', borderRadius: 8, fontSize: 11 }}
+              />
             </PieChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginTop: '0.5rem' }}>
@@ -302,7 +313,7 @@ export default function Dashboard() {
                     <span style={{ color: '#94a3b8' }}>{d.name}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', color: '#64748b' }}>
-                    <span style={{ color: d.color, fontWeight: 600 }}>{fmtB(d.value)}</span>
+                    <span style={{ color: d.color, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{fmtB(d.value)}원</span>
                     <span>({((d.value / total) * 100).toFixed(1)}%)</span>
                   </div>
                 </div>
@@ -319,15 +330,15 @@ export default function Dashboard() {
             <BarChart2 size={14} /> 월별 유입 / 유출
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 15 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#162a52" />
               <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 10 }} interval={2} />
-              <YAxis tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} width={58} />
+              <YAxis tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} width={62} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
-              <Bar dataKey="inflow" name="유입" fill="#34d399" radius={[2, 2, 0, 0]} maxBarSize={18} />
-              <Bar dataKey="outflow" name="유출" fill="#f87171" radius={[2, 2, 0, 0]} maxBarSize={18} />
-              <Bar dataKey="returnAmt" name="투자수익" fill="#c9a84c" radius={[2, 2, 0, 0]} maxBarSize={18} />
+              <Bar dataKey="inflow"    name="유입"    fill="#34d399" radius={[2,2,0,0]} maxBarSize={18} />
+              <Bar dataKey="outflow"   name="유출"    fill="#f87171" radius={[2,2,0,0]} maxBarSize={18} />
+              <Bar dataKey="returnAmt" name="투자수익" fill="#c9a84c" radius={[2,2,0,0]} maxBarSize={18} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -364,16 +375,16 @@ export default function Dashboard() {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={settlementChartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+              <BarChart data={settlementChartData} margin={{ top: 5, right: 10, bottom: 5, left: 15 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#162a52" />
                 <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 10 }} />
-                <YAxis tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} width={60} />
+                <YAxis tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} width={62} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
-                <Bar dataKey="balance" name="결산잔액" fill="#c9a84c" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="preTax" name="세전이익" fill="#34d399" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="balance" name="결산잔액" fill="#c9a84c" radius={[3,3,0,0]} />
+                <Bar dataKey="preTax"  name="세전이익" fill="#34d399" radius={[3,3,0,0]} />
                 {config.taxConfig.mode !== 'none' && (
-                  <Bar dataKey="afterTax" name="세후이익" fill="#60a5fa" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="afterTax" name="세후이익" fill="#60a5fa" radius={[3,3,0,0]} />
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -387,13 +398,13 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={participantChartData} layout="vertical" margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#162a52" horizontal={false} />
-              <XAxis type="number" tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} />
+              <XAxis type="number" tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} width={55} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
-              <Bar dataKey="preTax" name="세전귀속" fill="#c9a84c" radius={[0, 3, 3, 0]} maxBarSize={14} />
-              <Bar dataKey="afterTax" name="세후귀속" fill="#34d399" radius={[0, 3, 3, 0]} maxBarSize={14} />
-              <Bar dataKey="principal" name="투입원금" fill="#2a4f8a" radius={[0, 3, 3, 0]} maxBarSize={14} />
+              <Bar dataKey="preTax"    name="세전귀속" fill="#c9a84c" radius={[0,3,3,0]} maxBarSize={14} />
+              <Bar dataKey="afterTax"  name="세후귀속" fill="#34d399" radius={[0,3,3,0]} maxBarSize={14} />
+              <Bar dataKey="principal" name="투입원금" fill="#2a4f8a" radius={[0,3,3,0]} maxBarSize={14} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -423,13 +434,15 @@ export default function Dashboard() {
                 {settlements.map((s, i) => (
                   <tr key={i} className="settlement-row">
                     <td><span className="badge badge-gold">{s.month}</span></td>
-                    <td className="num">{fmt(s.cumulativePrincipal)}</td>
-                    <td className="num positive">{fmt(s.closingBalance)}</td>
-                    <td className="num positive">{fmt(s.preTaxProfit)}</td>
-                    <td className="num" style={{ color: config.taxConfig.mode !== 'none' ? '#34d399' : '#64748b' }}>{fmt(s.afterTaxProfit)}</td>
+                    <td className="num">{fmtB(s.cumulativePrincipal)}원</td>
+                    <td className="num positive">{fmtB(s.closingBalance)}원</td>
+                    <td className="num positive">{fmtB(s.preTaxProfit)}원</td>
+                    <td className="num" style={{ color: config.taxConfig.mode !== 'none' ? '#34d399' : '#64748b' }}>
+                      {fmtB(s.afterTaxProfit)}원
+                    </td>
                     <td className="num gold">{fmtPct(s.roi)}</td>
                     <td className="num" style={{ color: '#a78bfa' }}>{fmtPct(s.afterTaxRoi)}</td>
-                    <td className="num negative">{s.taxAmount > 0 ? fmt(s.taxAmount) : '-'}</td>
+                    <td className="num negative">{s.taxAmount > 0 ? `${fmtB(s.taxAmount)}원` : '-'}</td>
                   </tr>
                 ))}
               </tbody>

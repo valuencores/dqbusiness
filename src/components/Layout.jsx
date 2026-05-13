@@ -133,7 +133,7 @@ export default function Layout() {
               현재 잔액
             </div>
             <div style={{ color: '#c9a84c', fontWeight: 700, fontSize: '1rem', fontVariantNumeric: 'tabular-nums' }}>
-              {fmtB(kpis.currentBalance)}
+              {fmtB(kpis.currentBalance)}원
             </div>
             <div style={{ color: '#34d399', fontSize: '0.75rem', marginTop: '0.25rem' }}>
               ROI {(kpis.totalROI * 100).toFixed(1)}%
@@ -179,7 +179,7 @@ export default function Layout() {
               <>
                 <span>기간 <span style={{ color: '#94a3b8' }}>{config.startMonth} ~ {config.endMonth}</span></span>
                 <span>수익률 <span style={{ color: '#34d399', fontWeight: 600 }}>{(config.baseReturnRate * 100).toFixed(0)}%/월</span></span>
-                <span>원금 <span style={{ color: '#c9a84c', fontWeight: 600 }}>{fmtB(kpis.totalPrincipal)}</span></span>
+                <span>원금 <span style={{ color: '#c9a84c', fontWeight: 600 }}>{fmtB(kpis.totalPrincipal)}원</span></span>
               </>
             )}
           </div>

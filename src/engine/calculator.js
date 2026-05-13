@@ -57,11 +57,13 @@ export function fmt(n, decimals = 0) {
   }).format(n);
 }
 
+// fmtB: 천단위 쉼표 + 원 단위 (억/만 축약 없음)
 export function fmtB(n) {
-  // 억 단위
-  if (Math.abs(n) >= 100000000) return `${fmt(n / 100000000, 2)}억`;
-  if (Math.abs(n) >= 10000) return `${fmt(n / 10000, 0)}만`;
-  return fmt(n);
+  if (n === undefined || n === null || isNaN(n)) return '-';
+  return new Intl.NumberFormat('ko-KR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.round(n));
 }
 
 export function fmtPct(n, decimals = 1) {

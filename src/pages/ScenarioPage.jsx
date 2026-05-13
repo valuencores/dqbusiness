@@ -18,6 +18,15 @@ const SCENARIO_COLORS = {
   taxOptimized: '#a78bfa',
 };
 
+// ── Y축 약식 포매터 (차트 전용) ──────────────────────────────
+function axisTickFmt(v) {
+  const abs = Math.abs(v);
+  if (abs >= 100000000) return `${(v / 100000000).toFixed(0)}억`;
+  if (abs >= 10000000)  return `${(v / 10000000).toFixed(0)}천만`;
+  if (abs >= 10000)     return `${(v / 10000).toFixed(0)}만`;
+  return fmtB(v);
+}
+
 // ── Custom Tooltip ─────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -28,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.2rem' }}>
           <span style={{ color: p.color }}>{p.name}</span>
           <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: '#e2e8f0' }}>
-            {typeof p.value === 'number' && p.value > 1000 ? fmtB(p.value) : (p.value != null ? p.value.toFixed(1) + '%' : '-')}
+            {typeof p.value === 'number' && p.value > 1000 ? `${fmtB(p.value)}원` : (p.value != null ? p.value.toFixed(1) + '%' : '-')}
           </span>
         </div>
       ))}
@@ -43,7 +52,7 @@ const BalTooltip = ({ active, payload, label }) => {
       <div style={{ color: '#c9a84c', fontWeight: 700, marginBottom: '0.5rem' }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.color, marginBottom: '0.2rem' }}>
-          {p.name}: <strong>{fmtB(p.value)}</strong>
+          {p.name}: <strong>{fmtB(p.value)}원</strong>
         </div>
       ))}
     </div>
@@ -83,7 +92,7 @@ function ScenarioCard({ scenarioKey, scenario, kpis, active, onToggle }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
             <span style={{ color: '#64748b' }}>최종잔액</span>
-            <span style={{ color, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtB(kpis.currentBalance)}</span>
+            <span style={{ color, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtB(kpis.currentBalance)}원</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
             <span style={{ color: '#64748b' }}>총ROI</span>
@@ -91,7 +100,7 @@ function ScenarioCard({ scenarioKey, scenario, kpis, active, onToggle }) {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
             <span style={{ color: '#64748b' }}>사업이익</span>
-            <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{fmtB(kpis.preTaxProfit)}</span>
+            <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{fmtB(kpis.preTaxProfit)}원</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
             <span style={{ color: '#64748b' }}>수익률</span>
@@ -350,13 +359,13 @@ export default function ScenarioPage() {
                   <td className="num" style={{ color: '#a78bfa', fontWeight: 700 }}>
                     {(row.returnRate * 100).toFixed(0)}%
                   </td>
-                  <td className="num" style={{ color: row.color, fontWeight: 700 }}>{fmtB(row.finalBalance)}</td>
+                  <td className="num" style={{ color: row.color, fontWeight: 700 }}>{fmtB(row.finalBalance)}원</td>
                   <td className="num gold">{(row.totalROI * 100).toFixed(1)}%</td>
-                  <td className="num positive">{fmtB(row.preTaxProfit)}</td>
-                  <td className="num" style={{ color: '#34d399' }}>{fmtB(row.afterTaxProfit)}</td>
-                  <td className="num" style={{ color: row.color }}>{fmtB(row.lastSettlementBalance)}</td>
+                  <td className="num positive">{fmtB(row.preTaxProfit)}원</td>
+                  <td className="num" style={{ color: '#34d399' }}>{fmtB(row.afterTaxProfit)}원</td>
+                  <td className="num" style={{ color: row.color }}>{fmtB(row.lastSettlementBalance)}원</td>
                   <td className="num gold">{(row.lastSettlementROI * 100).toFixed(1)}%</td>
-                  <td className="num negative">{row.cumulativeTax > 0 ? fmtB(row.cumulativeTax) : '-'}</td>
+                  <td className="num negative">{row.cumulativeTax > 0 ? `${fmtB(row.cumulativeTax)}원` : '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -372,7 +381,7 @@ export default function ScenarioPage() {
             <LineChart data={balanceChartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#162a52" />
               <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 10 }} interval={4} />
-              <YAxis tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} width={65} />
+              <YAxis tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} width={65} />
               <Tooltip content={<BalTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
               {Object.entries(SCENARIOS).map(([key, sc]) =>
@@ -419,7 +428,7 @@ export default function ScenarioPage() {
               <BarChart data={settlementCompare} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#162a52" />
                 <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11 }} />
-                <YAxis tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} width={62} />
+                <YAxis tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} width={62} />
                 <Tooltip content={<BalTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 {Object.entries(SCENARIOS).map(([key, sc]) =>
@@ -438,7 +447,7 @@ export default function ScenarioPage() {
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={participantCompare} layout="vertical" margin={{ top: 5, right: 10, bottom: 5, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#162a52" horizontal={false} />
-              <XAxis type="number" tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} />
+              <XAxis type="number" tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} width={55} />
               <Tooltip content={<BalTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -497,7 +506,7 @@ export default function ScenarioPage() {
                 </div>
                 <div style={{ fontSize: '0.6875rem', color: '#64748b', marginBottom: '0.375rem' }}>최종잔액</div>
                 <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#34d399', fontVariantNumeric: 'tabular-nums' }}>
-                  {fmtB(testKpis?.currentBalance || 0)}
+                  {fmtB(testKpis?.currentBalance || 0)}원
                 </div>
                 <div style={{ fontSize: '0.6875rem', color: '#a78bfa', marginTop: '0.25rem' }}>
                   ROI {((testKpis?.totalROI || 0) * 100).toFixed(0)}%

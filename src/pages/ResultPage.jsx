@@ -36,6 +36,15 @@ function exportCSV(rows) {
   URL.revokeObjectURL(url);
 }
 
+// ── Y축 약식 포매터 (차트 전용) ──────────────────────────────
+function axisTickFmt(v) {
+  const abs = Math.abs(v);
+  if (abs >= 100000000) return `${(v / 100000000).toFixed(0)}억`;
+  if (abs >= 10000000)  return `${(v / 10000000).toFixed(0)}천만`;
+  if (abs >= 10000)     return `${(v / 10000).toFixed(0)}만`;
+  return fmtB(v);
+}
+
 // ── 자동 문장 요약 ───────────────────────────────────────────
 function generateSummary(kpis, settlements, config, participants) {
   if (!kpis || !settlements) return [];
@@ -48,12 +57,12 @@ function generateSummary(kpis, settlements, config, participants) {
   }
 
   // 월 수익률 영향
-  lines.push(`💡 월 수익률 ${(config.baseReturnRate * 100).toFixed(0)}% 기준으로 ${config.startMonth} ~ ${config.endMonth} (총 ${kpis.totalMonths}개월) 운용 시, 누적원금 ${fmtB(kpis.totalPrincipal)} 대비 세전 잔액 ${fmtB(kpis.currentBalance)}이 예상됩니다.`);
+  lines.push(`💡 월 수익률 ${(config.baseReturnRate * 100).toFixed(0)}% 기준으로 ${config.startMonth} ~ ${config.endMonth} (총 ${kpis.totalMonths}개월) 운용 시, 누적원금 ${fmtB(kpis.totalPrincipal)}원 대비 세전 잔액 ${fmtB(kpis.currentBalance)}원이 예상됩니다.`);
 
   // 세전/세후 비교
   if (config.taxConfig.mode !== 'none') {
     const diff = kpis.currentBalance - kpis.afterTaxBalance;
-    lines.push(`🧾 과세 반영 시 세전 잔액 대비 세후 잔액이 ${fmtB(diff)} 감소합니다. (세후 ROI: ${(kpis.afterTaxROI * 100).toFixed(1)}%)`);
+    lines.push(`🧾 과세 반영 시 세전 잔액 대비 세후 잔액이 ${fmtB(diff)}원 감소합니다. (세후 ROI: ${(kpis.afterTaxROI * 100).toFixed(1)}%)`);
   } else {
     lines.push(`🧾 현재 과세 미반영 상태입니다. 과세 설정에서 세율을 입력하면 세후 성과를 비교할 수 있습니다.`);
   }
@@ -66,7 +75,7 @@ function generateSummary(kpis, settlements, config, participants) {
   }
 
   // 최대 유입월
-  lines.push(`💰 총 유입금 ${fmtB(kpis.cumulativeInflow)} 중 투자수익 기여분이 ${fmtB(kpis.cumulativeReturn)}으로, 복리 효과가 자산 성장의 핵심 동력입니다.`);
+  lines.push(`💰 총 유입금 ${fmtB(kpis.cumulativeInflow)}원 중 투자수익 기여분이 ${fmtB(kpis.cumulativeReturn)}원으로, 복리 효과가 자산 성장의 핵심 동력입니다.`);
 
   return lines;
 }
@@ -99,7 +108,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div style={{ color: '#c9a84c', fontWeight: 700, marginBottom: '0.5rem' }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.color, marginBottom: '0.2rem' }}>
-          {p.name}: <strong>{fmtB(p.value)}</strong>
+          {p.name}: <strong>{fmtB(p.value)}원</strong>
         </div>
       ))}
     </div>
@@ -151,18 +160,18 @@ export default function ResultPage() {
       {/* ── ① 핵심 결과 카드 ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.875rem', marginBottom: '1.25rem' }}>
         {[
-          { label: '누적 투자원금', value: fmtB(kpis.totalPrincipal), color: '#60a5fa', sub: fmt(kpis.totalPrincipal) + '원' },
-          { label: '최종 세전 잔액', value: fmtB(kpis.currentBalance), color: '#c9a84c', sub: fmt(kpis.currentBalance) + '원' },
-          { label: '총투자 ROI', value: fmtPct(kpis.totalROI), color: '#34d399', sub: '세전 기준' },
-          { label: '세전 사업이익', value: fmtB(kpis.preTaxProfit), color: '#34d399', sub: '수익 - 원금' },
-          { label: '세후 사업이익', value: fmtB(kpis.afterTaxProfit), color: '#a78bfa', sub: config.taxConfig.mode === 'none' ? '과세 미반영' : `세금 ${fmtB(kpis.cumulativeTax)}` },
-          { label: '누적 세금', value: kpis.cumulativeTax > 0 ? fmtB(kpis.cumulativeTax) : '-', color: '#f87171', sub: config.taxConfig.mode === 'none' ? '미계산' : '추정치' },
-          { label: '총 운용기간', value: `${kpis.totalMonths}개월`, color: '#60a5fa', sub: `${config.startMonth} ~ ${config.endMonth}` },
-          { label: '세후 ROI', value: fmtPct(kpis.afterTaxROI), color: '#a78bfa', sub: '세후 기준' },
+          { label: '누적 투자원금',   value: `${fmtB(kpis.totalPrincipal)}원`,   color: '#60a5fa', sub: '총 투입 원금' },
+          { label: '최종 세전 잔액',  value: `${fmtB(kpis.currentBalance)}원`,   color: '#c9a84c', sub: '세전 기준 최종잔액' },
+          { label: '총투자 ROI',      value: fmtPct(kpis.totalROI),              color: '#34d399', sub: '세전 기준' },
+          { label: '세전 사업이익',   value: `${fmtB(kpis.preTaxProfit)}원`,     color: '#34d399', sub: '수익 - 원금' },
+          { label: '세후 사업이익',   value: `${fmtB(kpis.afterTaxProfit)}원`,   color: '#a78bfa', sub: config.taxConfig.mode === 'none' ? '과세 미반영' : `세금 ${fmtB(kpis.cumulativeTax)}원` },
+          { label: '누적 세금',       value: kpis.cumulativeTax > 0 ? `${fmtB(kpis.cumulativeTax)}원` : '-', color: '#f87171', sub: config.taxConfig.mode === 'none' ? '미계산' : '추정치' },
+          { label: '총 운용기간',     value: `${kpis.totalMonths}개월`,          color: '#60a5fa', sub: `${config.startMonth} ~ ${config.endMonth}` },
+          { label: '세후 ROI',        value: fmtPct(kpis.afterTaxROI),           color: '#a78bfa', sub: '세후 기준' },
         ].map((k, i) => (
           <div key={i} className="kpi-card">
             <div style={{ fontSize: '0.6875rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>{k.label}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: k.color, fontVariantNumeric: 'tabular-nums' }}>{k.value}</div>
+            <div style={{ fontSize: '1.125rem', fontWeight: 800, color: k.color, fontVariantNumeric: 'tabular-nums' }}>{k.value}</div>
             <div style={{ fontSize: '0.6875rem', color: '#475569', marginTop: '0.25rem' }}>{k.sub}</div>
           </div>
         ))}
@@ -194,16 +203,16 @@ export default function ResultPage() {
                 {settlements.map((s, i) => (
                   <tr key={i} className="settlement-row">
                     <td><span className="badge badge-gold">{s.month}</span></td>
-                    <td className="num">{fmt(s.cumulativePrincipal)}</td>
-                    <td className="num positive">{fmt(s.closingBalance)}</td>
-                    <td className="num positive">{fmt(s.preTaxProfit)}</td>
+                    <td className="num">{fmtB(s.cumulativePrincipal)}원</td>
+                    <td className="num positive">{fmtB(s.closingBalance)}원</td>
+                    <td className="num positive">{fmtB(s.preTaxProfit)}원</td>
                     <td className="num" style={{ color: config.taxConfig.mode !== 'none' ? '#34d399' : '#64748b' }}>
-                      {fmt(s.afterTaxProfit)}
+                      {fmtB(s.afterTaxProfit)}원
                     </td>
                     <td className="num gold">{fmtPct(s.roi)}</td>
                     <td className="num" style={{ color: '#a78bfa' }}>{fmtPct(s.afterTaxRoi)}</td>
-                    <td className="num positive">{fmt(Math.max(0, s.afterTaxProfit))}</td>
-                    <td className="num negative">{s.taxAmount > 0 ? fmt(s.taxAmount) : '-'}</td>
+                    <td className="num positive">{fmtB(Math.max(0, s.afterTaxProfit))}원</td>
+                    <td className="num negative">{s.taxAmount > 0 ? `${fmtB(s.taxAmount)}원` : '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -241,13 +250,13 @@ export default function ResultPage() {
                     </span>
                   </td>
                   <td className="num">{(p.distributionRatio * 100).toFixed(1)}%</td>
-                  <td className="num">{fmt(p.totalPrincipal)}</td>
-                  <td className="num positive">{fmt(p.preTaxShare)}</td>
+                  <td className="num">{fmtB(p.totalPrincipal)}원</td>
+                  <td className="num positive">{fmtB(p.preTaxShare)}원</td>
                   <td className="num" style={{ color: config.taxConfig.mode !== 'none' ? '#34d399' : '#64748b' }}>
-                    {fmt(p.afterTaxShare)}
+                    {fmtB(p.afterTaxShare)}원
                   </td>
-                  <td className="num negative">{p.estimatedTax > 0 ? fmt(p.estimatedTax) : '-'}</td>
-                  <td className="num positive">{fmt(p.netProfit)}</td>
+                  <td className="num negative">{p.estimatedTax > 0 ? `${fmtB(p.estimatedTax)}원` : '-'}</td>
+                  <td className="num positive">{fmtB(p.netProfit)}원</td>
                   <td className="num gold">{p.principal > 0 ? fmtPct(p.roi) : '-'}</td>
                 </tr>
               ))}
@@ -255,11 +264,11 @@ export default function ResultPage() {
             <tfoot>
               <tr style={{ borderTop: '2px solid #2a4f8a' }}>
                 <td colSpan={3} style={{ color: '#c9a84c', fontWeight: 700 }}>합계</td>
-                <td className="num" style={{ color: '#e2e8f0', fontWeight: 700 }}>{fmt(participants?.reduce((s, p) => s + p.totalPrincipal, 0) || 0)}</td>
-                <td className="num positive" style={{ fontWeight: 700 }}>{fmt(participants?.reduce((s, p) => s + p.preTaxShare, 0) || 0)}</td>
-                <td className="num" style={{ color: '#34d399', fontWeight: 700 }}>{fmt(participants?.reduce((s, p) => s + p.afterTaxShare, 0) || 0)}</td>
-                <td className="num negative" style={{ fontWeight: 700 }}>{fmt(participants?.reduce((s, p) => s + p.estimatedTax, 0) || 0)}</td>
-                <td className="num positive" style={{ fontWeight: 700 }}>{fmt(participants?.reduce((s, p) => s + p.netProfit, 0) || 0)}</td>
+                <td className="num" style={{ color: '#e2e8f0', fontWeight: 700 }}>{fmtB(participants?.reduce((s, p) => s + p.totalPrincipal, 0) || 0)}원</td>
+                <td className="num positive" style={{ fontWeight: 700 }}>{fmtB(participants?.reduce((s, p) => s + p.preTaxShare, 0) || 0)}원</td>
+                <td className="num" style={{ color: '#34d399', fontWeight: 700 }}>{fmtB(participants?.reduce((s, p) => s + p.afterTaxShare, 0) || 0)}원</td>
+                <td className="num negative" style={{ fontWeight: 700 }}>{fmtB(participants?.reduce((s, p) => s + p.estimatedTax, 0) || 0)}원</td>
+                <td className="num positive" style={{ fontWeight: 700 }}>{fmtB(participants?.reduce((s, p) => s + p.netProfit, 0) || 0)}원</td>
                 <td></td>
               </tr>
             </tfoot>
@@ -285,7 +294,7 @@ export default function ResultPage() {
                 <span className="badge badge-blue" style={{ marginLeft: '0.5rem', color: item.color }}>{item.tag}</span>
               </div>
               <div style={{ fontSize: '1.125rem', fontWeight: 800, color: item.color, fontVariantNumeric: 'tabular-nums' }}>
-                {fmtB(item.profit)}
+                {fmtB(item.profit)}원
               </div>
               <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
                 ROI {(item.roi * 100).toFixed(1)}%
@@ -299,7 +308,7 @@ export default function ResultPage() {
             <BarChart data={settlementCompareData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#162a52" />
               <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11 }} />
-              <YAxis tickFormatter={v => fmtB(v)} tick={{ fill: '#475569', fontSize: 10 }} width={60} />
+              <YAxis tickFormatter={axisTickFmt} tick={{ fill: '#475569', fontSize: 10 }} width={60} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
               <Bar dataKey="balance" name="결산잔액" fill="#c9a84c" radius={[3, 3, 0, 0]} />
@@ -345,17 +354,17 @@ export default function ResultPage() {
                       : <span style={{ color: '#94a3b8' }}>{r.month}</span>
                     }
                   </td>
-                  <td className="num">{fmt(r.openingBalance)}</td>
-                  <td className="num positive">{r.totalInflow > 0 ? fmt(r.totalInflow) : '-'}</td>
-                  <td className="num positive">{fmt(r.investmentReturn)}</td>
-                  <td className="num negative">{r.totalOutflow > 0 ? fmt(r.totalOutflow) : '-'}</td>
-                  <td className="num gold">{fmt(r.preTaxBalance)}</td>
+                  <td className="num">{fmtB(r.openingBalance)}원</td>
+                  <td className="num positive">{r.totalInflow > 0 ? `${fmtB(r.totalInflow)}원` : '-'}</td>
+                  <td className="num positive">{fmtB(r.investmentReturn)}원</td>
+                  <td className="num negative">{r.totalOutflow > 0 ? `${fmtB(r.totalOutflow)}원` : '-'}</td>
+                  <td className="num gold">{fmtB(r.preTaxBalance)}원</td>
                   <td className="num" style={{ color: r.afterTaxBalance !== r.preTaxBalance ? '#34d399' : '#64748b' }}>
-                    {fmt(r.afterTaxBalance)}
+                    {fmtB(r.afterTaxBalance)}원
                   </td>
-                  <td className="num">{fmt(r.cumulativePrincipal)}</td>
+                  <td className="num">{fmtB(r.cumulativePrincipal)}원</td>
                   <td className="num" style={{ color: r.preTaxProfit >= 0 ? '#34d399' : '#f87171' }}>
-                    {fmt(r.preTaxProfit)}
+                    {fmtB(r.preTaxProfit)}원
                   </td>
                   <td className="num gold">{(r.roi * 100).toFixed(1)}%</td>
                 </tr>
@@ -390,15 +399,15 @@ export default function ResultPage() {
                 return (
                   <tr key={i} className={r.isSettlement ? 'settlement-row' : ''}>
                     <td>{r.isSettlement ? <span className="badge badge-gold">{r.month}</span> : <span style={{ color: '#94a3b8' }}>{r.month}</span>}</td>
-                    <td className="num positive">{r.inflow.general > 0 ? fmt(r.inflow.general) : '-'}</td>
-                    <td className="num positive">{r.inflow.partner > 0 ? fmt(r.inflow.partner) : '-'}</td>
-                    <td className="num positive">{r.inflow.insuranceAllowance > 0 ? fmt(r.inflow.insuranceAllowance) : '-'}</td>
-                    <td className="num positive">{r.inflow.settlementAllowance > 0 ? fmt(r.inflow.settlementAllowance) : '-'}</td>
-                    <td className="num positive">{r.inflow.insuranceRefund > 0 ? fmt(r.inflow.insuranceRefund) : '-'}</td>
-                    <td className="num negative">{r.outflow.insurance > 0 ? fmt(r.outflow.insurance) : '-'}</td>
-                    <td className="num negative">{r.outflow.cost > 0 ? fmt(r.outflow.cost) : '-'}</td>
+                    <td className="num positive">{r.inflow.general > 0 ? `${fmtB(r.inflow.general)}원` : '-'}</td>
+                    <td className="num positive">{r.inflow.partner > 0 ? `${fmtB(r.inflow.partner)}원` : '-'}</td>
+                    <td className="num positive">{r.inflow.insuranceAllowance > 0 ? `${fmtB(r.inflow.insuranceAllowance)}원` : '-'}</td>
+                    <td className="num positive">{r.inflow.settlementAllowance > 0 ? `${fmtB(r.inflow.settlementAllowance)}원` : '-'}</td>
+                    <td className="num positive">{r.inflow.insuranceRefund > 0 ? `${fmtB(r.inflow.insuranceRefund)}원` : '-'}</td>
+                    <td className="num negative">{r.outflow.insurance > 0 ? `${fmtB(r.outflow.insurance)}원` : '-'}</td>
+                    <td className="num negative">{r.outflow.cost > 0 ? `${fmtB(r.outflow.cost)}원` : '-'}</td>
                     <td className="num" style={{ color: netCF >= 0 ? '#34d399' : '#f87171', fontWeight: 600 }}>
-                      {netCF !== 0 ? fmt(netCF) : '-'}
+                      {netCF !== 0 ? `${fmtB(netCF)}원` : '-'}
                     </td>
                   </tr>
                 );
