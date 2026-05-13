@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, FileBarChart2, GitCompare,
-  TrendingUp, ChevronLeft, ChevronRight, Activity, BookOpen, Menu, X
+  TrendingUp, ChevronLeft, ChevronRight, Activity, BookOpen, Menu, X, Calculator
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { fmt, fmtB } from '../engine/calculator';
@@ -14,6 +14,11 @@ const NAV_ITEMS = [
   { path: '/input',      label: '입력설정',   icon: Settings },
   { path: '/result',     label: '결과리포트', icon: FileBarChart2 },
   { path: '/scenario',   label: '시나리오',   icon: GitCompare },
+];
+
+// 하단 고정 유틸 메뉴
+const BOTTOM_NAV = [
+  { path: '/calc', label: '복리 계산기', icon: Calculator },
 ];
 
 function useIsMobile() {
@@ -186,6 +191,52 @@ export default function Layout() {
           );
         })}
       </nav>
+
+      {/* Bottom Utility Nav — 복리 계산기 */}
+      <div style={{
+        padding: '0.5rem 0.625rem',
+        borderTop: '1px solid #162a52',
+      }}>
+        {(isMobile || !collapsed) && (
+          <div style={{
+            fontSize: '0.5625rem', color: '#334155',
+            textTransform: 'uppercase', letterSpacing: '0.1em',
+            marginBottom: '0.375rem', paddingLeft: '0.375rem',
+          }}>
+            도구
+          </div>
+        )}
+        {BOTTOM_NAV.map(({ path, label, icon: Icon }) => {
+          const isActive = location.pathname.startsWith(path);
+          return (
+            <NavLink
+              key={path}
+              to={path}
+              onClick={handleNavClick}
+              className={`nav-link ${isActive ? 'active' : ''}`}
+              style={(!isMobile && collapsed)
+                ? { justifyContent: 'center', padding: '0.625rem' }
+                : {
+                    background: isActive ? undefined : 'rgba(201,168,76,0.04)',
+                    border: isActive ? undefined : '1px solid rgba(201,168,76,0.12)',
+                  }
+              }
+              title={(!isMobile && collapsed) ? label : undefined}
+            >
+              <Icon size={isMobile ? 18 : 15} color={isActive ? undefined : '#c9a84c'} />
+              {(isMobile || !collapsed) && (
+                <span style={{
+                  fontSize: isMobile ? '0.9375rem' : '0.875rem',
+                  color: isActive ? undefined : '#c9a84c',
+                  fontWeight: 600,
+                }}>
+                  {label}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
+      </div>
 
       {/* Mini KPI Footer */}
       {(isMobile || !collapsed) && kpis && (
