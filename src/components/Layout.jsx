@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, FileBarChart2, GitCompare,
-  TrendingUp, ChevronLeft, ChevronRight, Activity
+  TrendingUp, ChevronLeft, ChevronRight, Activity, BookOpen
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { fmt, fmtB } from '../engine/calculator';
@@ -10,6 +10,7 @@ import { SCENARIOS } from '../models/dataModel';
 
 const NAV_ITEMS = [
   { path: '/',           label: '대시보드',   icon: LayoutDashboard },
+  { path: '/strategy',   label: '사업전략',   icon: BookOpen },
   { path: '/input',      label: '입력설정',   icon: Settings },
   { path: '/result',     label: '결과리포트', icon: FileBarChart2 },
   { path: '/scenario',   label: '시나리오',   icon: GitCompare },

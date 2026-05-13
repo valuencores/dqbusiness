@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import InputPage from './pages/InputPage';
 import ResultPage from './pages/ResultPage';
 import ScenarioPage from './pages/ScenarioPage';
+import StrategyPage from './pages/StrategyPage';
 import './index.css';
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
+          <Route path="strategy" element={<StrategyPage />} />
           <Route path="input" element={<InputPage />} />
           <Route path="result" element={<ResultPage />} />
           <Route path="scenario" element={<ScenarioPage />} />

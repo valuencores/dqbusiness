@@ -203,6 +203,7 @@ export function calculateWorkTable(config) {
   let cumulativeOutflow = 0;
   let cumulativeReturn = 0;
   let cumulativeTax = 0;
+  let settlementIndex = 0; // 결산 순서 추적 (0-based)
 
   months.forEach((month, idx) => {
     const inflow = inflowMap[month] || { general: 0, partner: 0, insuranceAllowance: 0, settlementAllowance: 0, insuranceRefund: 0, other: 0 };
@@ -213,10 +214,6 @@ export function calculateWorkTable(config) {
 
     // 투자수익 = 전월말잔액 × 월수익률
     const investmentReturn = prevBalance * config.baseReturnRate;
-
-    // 세금(결산 시점에만 반영하는 옵션)
-    // 여기서는 매월 세금 분리 계산은 결산 시점에서 별도 처리
-    const tax = 0; // 결산 시점에서만 계산
 
     // 당월 세전 잔액
     const preTaxBalance = prevBalance + totalInflow + investmentReturn - totalOutflow;
@@ -239,10 +236,25 @@ export function calculateWorkTable(config) {
     let afterTaxBalance = preTaxBalance;
     let afterTaxProfit = preTaxProfit;
 
-    if (isSettlement && config.taxConfig.mode !== 'none') {
-      taxAmount = calcTax(preTaxProfit, config.taxConfig, 'individual');
-      afterTaxBalance = preTaxBalance - taxAmount;
-      afterTaxProfit = preTaxProfit - taxAmount;
+    if (isSettlement) {
+      const mode = config.taxConfig?.mode;
+      if (mode === 'settlement_from_2nd') {
+        // 1차 결산(index=0): 비과세 / 2차·3차(index>=1): flatRate 적용
+        if (settlementIndex >= 1) {
+          const rate = config.taxConfig.flatRate ?? 0.332;
+          taxAmount = Math.max(0, preTaxProfit) * rate;
+          afterTaxBalance = preTaxBalance - taxAmount;
+          afterTaxProfit = preTaxProfit - taxAmount;
+        }
+        settlementIndex++;
+      } else if (mode !== 'none' && mode != null) {
+        taxAmount = calcTax(preTaxProfit, config.taxConfig, 'individual');
+        afterTaxBalance = preTaxBalance - taxAmount;
+        afterTaxProfit = preTaxProfit - taxAmount;
+        settlementIndex++;
+      } else {
+        settlementIndex++;
+      }
     }
 
     cumulativeTax += taxAmount;
